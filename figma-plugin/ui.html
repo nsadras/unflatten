@@ -1,23 +1,110 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        textarea { width: 100%; height: 150px; margin-bottom: 10px; }
-        button { background: #18A0FB; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .upload-container {
+            width: 100%;
+            text-align: center;
+            border: 2px dashed #e6e6e6;
+            border-radius: 8px;
+            padding: 40px 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-container:hover {
+            border-color: #18A0FB;
+            background: #F0F8FF;
+        }
+
+        button {
+            background: #18A0FB;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        #status {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
     </style>
 </head>
+
 <body>
-    <h3>Unflatten Paster</h3>
-    <p>Paste the JSON from the web app below:</p>
-    <textarea id="jsonInput" placeholder="Paste JSON here..."></textarea>
-    <button id="drawBtn">Draw in Figma</button>
+    <div class="upload-container" onclick="document.getElementById('fileInput').click()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#18A0FB" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <p>Click to Upload JSON</p>
+        <div id="status">Select unflatten-design.json</div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".json">
 
     <script>
-        document.getElementById('drawBtn').onclick = () => {
-            const json = document.getElementById('jsonInput').value;
-            parent.postMessage({ pluginMessage: { type: 'draw-layout', json } }, '*');
-        }
+        const fileInput = document.getElementById('fileInput');
+        const statusDiv = document.getElementById('status');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            statusDiv.textContent = "Reading " + file.name + "...";
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const json = event.target.result;
+                    // Validate JSON roughly
+                    JSON.parse(json);
+
+                    statusDiv.textContent = "Processing...";
+                    parent.postMessage({ pluginMessage: { type: 'draw-layout', json } }, '*');
+                } catch (err) {
+                    statusDiv.textContent = "Error: Invalid JSON file";
+                    statusDiv.style.color = "red";
+                }
+            };
+            reader.readAsText(file);
+        });
     </script>
 </body>
+
 </html>

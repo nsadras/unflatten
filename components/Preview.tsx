@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Code, Eye, Copy, Check, AlertCircle } from 'lucide-react';
+import { Code, Eye, Download, AlertCircle } from 'lucide-react';
 import { generateSandboxHtml } from '@/lib/sandbox';
 
 interface PreviewProps {
@@ -11,10 +11,10 @@ interface PreviewProps {
 
 export default function Preview({ code, originalImage }: PreviewProps) {
     const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
-    const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
+    const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloaded' | 'error'>('idle');
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    const handleCopyToFigma = async () => {
+    const handleDownloadJson = async () => {
         if (!iframeRef.current || !iframeRef.current.contentWindow) return;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,23 +25,32 @@ export default function Preview({ code, originalImage }: PreviewProps) {
                 // getFigmaData is now async
                 const data = await contentWindow.getFigmaData();
                 if (data) {
-                    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-                    setCopyStatus('copied');
-                    setTimeout(() => setCopyStatus('idle'), 2000);
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'unflatten-design.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    setDownloadStatus('downloaded');
+                    setTimeout(() => setDownloadStatus('idle'), 2000);
                 } else {
                     console.error('No data returned from sandbox');
-                    setCopyStatus('error');
-                    setTimeout(() => setCopyStatus('idle'), 2000);
+                    setDownloadStatus('error');
+                    setTimeout(() => setDownloadStatus('idle'), 2000);
                 }
             } catch (err) {
                 console.error('Error getting figma data:', err);
-                setCopyStatus('error');
-                setTimeout(() => setCopyStatus('idle'), 2000);
+                setDownloadStatus('error');
+                setTimeout(() => setDownloadStatus('idle'), 2000);
             }
         } else {
             console.error('getFigmaData not found in iframe');
-            setCopyStatus('error');
-            setTimeout(() => setCopyStatus('idle'), 2000);
+            setDownloadStatus('error');
+            setTimeout(() => setDownloadStatus('idle'), 2000);
         }
     };
 
@@ -68,11 +77,11 @@ export default function Preview({ code, originalImage }: PreviewProps) {
                 </div>
 
                 <button
-                    onClick={handleCopyToFigma}
+                    onClick={handleDownloadJson}
                     className="flex items-center gap-2 px-4 py-2 mr-2 rounded-md text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
                 >
-                    {copyStatus === 'copied' ? <Check size={16} /> : copyStatus === 'error' ? <AlertCircle size={16} /> : <Copy size={16} />}
-                    {copyStatus === 'copied' ? 'Copied JSON!' : copyStatus === 'error' ? 'Error' : 'Copy for Figma'}
+                    {downloadStatus === 'downloaded' ? <Download size={16} /> : downloadStatus === 'error' ? <AlertCircle size={16} /> : <Download size={16} />}
+                    {downloadStatus === 'downloaded' ? 'Downloaded!' : downloadStatus === 'error' ? 'Error' : 'Download JSON'}
                 </button>
             </div>
 
