@@ -12,7 +12,7 @@ export const config = {
     ],
 };
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const basicAuth = req.headers.get('authorization');
 
     if (basicAuth) {
