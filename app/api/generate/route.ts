@@ -1,5 +1,10 @@
 import { model } from '@/lib/gemini';
 import { NextResponse } from 'next/server';
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
+import { db } from "@/app/lib/db";
+import { userUsageDaily } from "@/app/lib/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 const SYSTEM_PROMPT = `
 You are an expert Frontend Developer specializing in Tailwind CSS and React.
@@ -17,12 +22,44 @@ RULES:
 `;
 
 export async function POST(req: Request) {
+    const session = await auth.api.getSession({
+        headers: await headers()
+    });
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Check rate limit
+    const usage = await db.select()
+        .from(userUsageDaily)
+        .where(and(eq(userUsageDaily.userId, userId), eq(userUsageDaily.date, today)))
+        .limit(1);
+
+    if (usage.length > 0 && usage[0].count >= 10) {
+        return NextResponse.json(
+            { error: "Daily limit reached (10 generations/day). Please try again tomorrow." },
+            { status: 429 }
+        );
+    }
+
     try {
         const { image } = await req.json();
 
         if (!image) {
             return NextResponse.json({ error: 'No image provided' }, { status: 400 });
         }
+
+        // Increment usage count (Atomic upsert)
+        await db.insert(userUsageDaily)
+            .values({ userId, date: today, count: 1 })
+            .onConflictDoUpdate({
+                target: [userUsageDaily.userId, userUsageDaily.date],
+                set: { count: sql`${userUsageDaily.count} + 1` }
+            });
 
         // Gemini expects the base64 part without the data:image/png;base64 prefix
         const base64Data = image.split(',')[1];

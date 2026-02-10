@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from 'react';
+import { authClient } from "@/app/lib/auth-client";
 import DragDrop from '@/components/DragDrop';
 import Preview from '@/components/Preview';
+import UserProfile from '@/components/user-profile';
 import { Sparkles, Loader2, ArrowLeft, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
+  const { data: session } = authClient.useSession();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
@@ -93,14 +96,18 @@ export default function Home() {
               <p className="text-zinc-500 text-sm">Screenshot to Figma (SLC)</p>
             </div>
           </div>
-          {generatedCode && (
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
-            >
-              <ArrowLeft size={16} /> Start Over
-            </button>
-          )}
+
+          <div className="flex items-center gap-4">
+            {generatedCode && (
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
+              >
+                <ArrowLeft size={16} /> Start Over
+              </button>
+            )}
+            <UserProfile />
+          </div>
         </header>
 
         {/* content */}
@@ -141,15 +148,29 @@ export default function Home() {
 
                 <div className="relative">
                   {inputType === 'image' ? (
-                    <>
-                      <DragDrop onFileSelect={handleFileSelect} isProcessing={isProcessing} />
-                      {isProcessing && (
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center gap-4 z-10">
-                          <Loader2 className="animate-spin text-purple-500" size={40} />
-                          <p className="font-medium text-zinc-200">Vibe coding pixel perfect layout...</p>
+                    session ? (
+                      <>
+                        <DragDrop onFileSelect={handleFileSelect} isProcessing={isProcessing} />
+                        {isProcessing && (
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center gap-4 z-10">
+                            <Loader2 className="animate-spin text-purple-500" size={40} />
+                            <p className="font-medium text-zinc-200">Vibe coding pixel perfect layout...</p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full h-64 bg-zinc-900/50 border border-zinc-700/50 rounded-xl flex flex-col items-center justify-center gap-4 text-center p-8 border-dashed">
+                        <div className="p-4 bg-zinc-800/50 rounded-full">
+                          <Sparkles className="text-zinc-400" size={24} />
                         </div>
-                      )}
-                    </>
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-medium text-white">Sign in to Vibe Code</h3>
+                          <p className="text-sm text-zinc-400 max-w-xs">
+                            You need to be signed in to upload screenshots and generate code.
+                          </p>
+                        </div>
+                      </div>
+                    )
                   ) : (
                     <div className="flex flex-col gap-4">
                       {/* Guidelines */}
