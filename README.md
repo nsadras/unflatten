@@ -45,6 +45,17 @@ You need a Google Gemini API Key.
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Building the Plugin (Distribution)
+
+To create a distributable zip file for the Figma plugin:
+
+1. Run the build command:
+   ```bash
+   npm run build:plugin
+   ```
+2. This will create a `public/unflatten-plugin.zip` file.
+3. You can download and install this zip file via the `/install` page in the running app.
+
 ## How to use (Figma Workflow)
 
 1. **Upload**: Drop a screenshot into the web app.

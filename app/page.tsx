@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from 'react';
 import { authClient } from "@/app/lib/auth-client";
-import DragDrop from '@/components/DragDrop';
+import Header from '@/components/Header';
 import Preview from '@/components/Preview';
-import UserProfile from '@/components/user-profile';
-import { Sparkles, Loader2, ArrowLeft, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ImageUploadInput from '@/components/ImageUploadInput';
+import CodeInput from '@/components/CodeInput';
 
 export default function Home() {
   const { data: session } = authClient.useSession();
@@ -86,32 +88,13 @@ export default function Home() {
       <div className="max-w-6xl mx-auto flex flex-col gap-12">
 
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-zinc-800 pb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <Sparkles className="text-white" size={20} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Unflatten</h1>
-              <p className="text-zinc-500 text-sm">Screenshot to Figma (SLC)</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {generatedCode && (
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm"
-              >
-                <ArrowLeft size={16} /> Start Over
-              </button>
-            )}
-            <UserProfile />
-          </div>
-        </header>
+        <Header
+          showReset={!!generatedCode}
+          onReset={handleReset}
+        />
 
         {/* content */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="flex-1 flex flex-col items-center pt-20 pb-20 min-h-[500px]">
           <AnimatePresence mode="wait">
             {!generatedCode ? (
               <motion.div
@@ -122,12 +105,14 @@ export default function Home() {
                 className="w-full max-w-xl flex flex-col gap-8 text-center"
               >
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-500">
-                    Vibe Code your Design
+                  <h2 className="text-3xl font-bold bg-clip-text text-white">
+                    Turn Screenshots into Figma Designs
                   </h2>
-                  <p className="text-zinc-400">
-                    Upload a mobile screenshot or paste React code.
-                  </p>
+                  <div className="text-zinc-400 text-base max-w-md mx-auto space-y-1">
+                    <p>1. Upload a screenshot or paste React code.</p>
+                    <p>2. Save the generated bridge JSON.</p>
+                    <p>3. Import JSON to Figma using our <Link href="/install" className="text-indigo-400 hover:text-indigo-300 transition-colors underline decoration-indigo-500/30">Plugin</Link>.</p>
+                  </div>
                 </div>
 
                 {/* Input Toggle */}
@@ -146,70 +131,18 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="relative">
+                <div className="relative min-h-[300px]">
                   {inputType === 'image' ? (
-                    session ? (
-                      <>
-                        <DragDrop onFileSelect={handleFileSelect} isProcessing={isProcessing} />
-                        {isProcessing && (
-                          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center gap-4 z-10">
-                            <Loader2 className="animate-spin text-purple-500" size={40} />
-                            <p className="font-medium text-zinc-200">Vibe coding pixel perfect layout...</p>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="w-full h-64 bg-zinc-900/50 border border-zinc-700/50 rounded-xl flex flex-col items-center justify-center gap-4 text-center p-8 border-dashed">
-                        <div className="p-4 bg-zinc-800/50 rounded-full">
-                          <Sparkles className="text-zinc-400" size={24} />
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-medium text-white">Sign in to Vibe Code</h3>
-                          <p className="text-sm text-zinc-400 max-w-xs">
-                            You need to be signed in to upload screenshots and generate code.
-                          </p>
-                        </div>
-                      </div>
-                    )
+                    <ImageUploadInput
+                      onFileSelect={handleFileSelect}
+                      isProcessing={isProcessing}
+                    />
                   ) : (
-                    <div className="flex flex-col gap-4">
-                      {/* Guidelines */}
-                      <details className="group bg-zinc-900/50 border border-zinc-700/50 rounded-lg overflow-hidden text-left my-4">
-                        <summary className="flex items-center gap-2 p-3 text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200 transition-colors select-none">
-                          <div className="bg-zinc-800 p-1 rounded-md">
-                            <Info size={14} />
-                          </div>
-                          <span>Formatting Guidelines</span>
-                          <div className="ml-auto transition-transform group-open:rotate-180">
-                            <ChevronDown size={14} />
-                          </div>
-                        </summary>
-                        <div className="p-3 py-3 text-xs text-zinc-500 space-y-2 border-t border-zinc-800/50 mt-1">
-                          <p>To ensure the best results, please follow these rules:</p>
-                          <ul className="list-disc list-inside space-y-1 ml-1">
-                            <li><strong>Structure:</strong> Must export a single <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">default</code> functional component.</li>
-                            <li><strong>Styling:</strong> Use pure <strong>Tailwind CSS</strong> classes.</li>
-                            <li><strong>Icons:</strong> Import from <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">lucide-react</code> (e.g., <code className="text-zinc-400">import &#123; User &#125; from 'lucide-react'</code>).</li>
-                            <li><strong>Images:</strong> Use <code className="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">https://placehold.co/600x400</code> for placeholders.</li>
-                            <li><strong>No External Deps:</strong> Do not import other libraries or local files.</li>
-                          </ul>
-                        </div>
-                      </details>
-
-                      <textarea
-                        value={pastedCode}
-                        onChange={(e) => setPastedCode(e.target.value)}
-                        placeholder="Paste your React component code here..."
-                        className="w-full h-64 bg-zinc-900/50 border border-zinc-700 rounded-xl p-4 text-zinc-300 font-mono text-sm focus:outline-none focus:border-indigo-500 resize-none"
-                      />
-                      <button
-                        onClick={handlePasteSubmit}
-                        disabled={!pastedCode.trim()}
-                        className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl font-medium text-white shadow-lg shadow-indigo-500/20 hover:opacity-90 disabled:opacity-50 transition-opacity"
-                      >
-                        Visualize & Export to Figma
-                      </button>
-                    </div>
+                    <CodeInput
+                      value={pastedCode}
+                      onChange={setPastedCode}
+                      onSubmit={handlePasteSubmit}
+                    />
                   )}
                 </div>
 
