@@ -19,4 +19,8 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    trustedOrigins: [
+        process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined
+    ].filter(Boolean) as string[],
 });
