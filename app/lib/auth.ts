@@ -21,6 +21,8 @@ export const auth = betterAuth({
     },
     trustedOrigins: [
         process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined
+        process.env.VERCEL_URL!,
+        "https://unflatten.vercel.app",
+        "http://localhost:3000",
     ].filter(Boolean) as string[],
 });
