@@ -6,14 +6,6 @@ It uses **Gemini 3 Flash** to "vibe code" the visual design into a React + Tailw
 
 ![Unflatten Preview](https://placehold.co/800x400/18181b/white?text=Unflatten+Screenshot+to+Figma)
 
-## Features
-
-- **Drag & Drop Upload**: Simple interface to upload mobile UI screenshots.
-- **Vibe Coding Engine**: leveraging Gemini 3 Flash to generate pixel-perfect Tailwind CSS.
-- **Ghost Renderer**: A sandboxed environment to render and analyze the generated code.
-- **Auto Layout Extraction**: Intelligently converts DOM flexbox structures into Figma Auto Layout frames.
-- **Figma Plugin**: A dedicated plugin to paste and draw the extracted design directly in Figma.
-
 ## Tech Stack
 
 - **Frontend**: Next.js 14, Tailwind CSS, Framer Motion
